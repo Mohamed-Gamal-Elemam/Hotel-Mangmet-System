@@ -1,13 +1,18 @@
 
 using HMS.API.Extantion;
 using HMS.Core.Contracts;
+using HMS.Core.Entities.SecurityModule;
 using HMS.Infrastructure.Data.Contexts;
+using HMS.Infrastructure.Data.DataSeed;
 using HMS.Infrastructure.Data.Repository;
 using HMS.Services;
 using HMS.Services.Helper;
 using HMS.Services.Services;
 using HMS.ServicesAbstraction;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 namespace HMS.API
 {
@@ -28,13 +33,42 @@ namespace HMS.API
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
             });
             builder.Services.AddScoped(typeof(IUnitOfWork), typeof(UnitOfWork));
-            builder.Services.AddAutoMapper(typeof(ServiceAssemblyRefrance).Assembly);
+            builder.Services.AddAutoMapper(cfg =>
+            {
+                cfg.AddMaps(typeof(ServiceAssemblyRefrance).Assembly);
+            });
             builder.Services.AddScoped<IRoomService,RoomService>();
-            builder.Services.AddTransient   <IAttachementService, AttachementService>();
+            builder.Services.AddTransient<IAttachementService, AttachementService>();
+            builder.Services.AddScoped<IDataIntializer,DataIntializer>();
+            builder.Services.AddIdentity<HotelUser, IdentityRole>()
+                .AddEntityFrameworkStores<HotelDbContext>();
+
+            builder.Services.AddScoped<IAuthServices,AuthServices>();
+
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters()
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = builder.Configuration["JWT:ValidIssuer"],
+                        ValidAudience = builder.Configuration["JWT:ValidAudience"],
+                        IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(builder.Configuration["JWT:SecretKey"])),
+                        ClockSkew = TimeSpan.FromHours(1)
+                    };
+                });
 
             var app = builder.Build();
 
             await app.MigrateDatabaseAsync();
+            await app.SeedingIdentityDataAsync();
 
 
             // Configure the HTTP request pipeline.
@@ -46,11 +80,9 @@ namespace HMS.API
             }
 
             app.UseHttpsRedirection();
-
+            app.UseAuthentication();
             app.UseAuthorization();
             app.UseStaticFiles();
-
-
             app.MapControllers();
 
             app.Run();

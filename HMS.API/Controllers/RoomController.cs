@@ -1,4 +1,5 @@
 ﻿using HMS.ServicesAbstraction;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Shared.DTOs.RoomDtos;
 using Shared.QueryPramters;
@@ -16,6 +17,7 @@ namespace HMS.API.Controllers
             _roomService = roomService;
         }
         [HttpGet("Public")]
+        [Authorize(Roles ="Guest")]
         public async Task<ActionResult<GenaricResponse<IEnumerable<RoomDto>>>> GetAllRoomsForGestAsync (string? roomType, string? sort)
         {
            var response = await _roomService.GetAllRoomsForGestAsync(roomType, sort);
@@ -24,12 +26,14 @@ namespace HMS.API.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize]
         public async Task<ActionResult<GenaricResponse<RoomDetailsDto>>> GetRoomByIdAsync(int id)
         {
             var response = await _roomService.GetRoomByIdAsync(id);
             return HandelResponse(response);
         }
         [HttpGet("Admin")]
+        [Authorize(Roles ="Admin,Staff")]
         public async Task<ActionResult<GenaricResponse<IEnumerable<RoomForAdminDto>>>> GetRoomsForAdminOrStuff([FromQuery] RoomQueryParams? queryParams)
         {
             var response = await _roomService.GetRoomsForAdminOrStaff(queryParams);
@@ -37,30 +41,39 @@ namespace HMS.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles ="Admin")]
         public async Task<ActionResult<GenaricResponse<bool>>> CreateRoomAsync([FromBody] CreateRoomDto createRoom)
         {
             var response = await _roomService.CreateRoomAsync(createRoom);
             return HandelResponse(response);
         }
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
+
         public async Task<ActionResult<GenaricResponse<bool>>> UpdateRoomAsync(int id, [FromBody] UpdateRoomDto updateRoom)
         {
             var response = await _roomService.UpdateRoomAsync(id, updateRoom);
             return HandelResponse(response);
         }
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
+
         public async Task<ActionResult<GenaricResponse<bool>>> DeleteRoomAsync(int id)
         {
             var response = await _roomService.DeleteRoomAsync(id);
             return HandelResponse(response);
         }
         [HttpPost("{roomId}/UploadImages")]
+        [Authorize(Roles = "Admin")]
+
         public async Task<ActionResult<GenaricResponse<bool>>> UploadRoomImages(int roomId, [FromForm] List<IFormFile> files)
         {
             var response = await _roomService.UploadRoomImagesAsync(roomId, files);
             return HandelResponse(response);
         }
         [HttpDelete("{roomId}/DeleteImage/{imageId}")]
+        [Authorize(Roles = "Admin")]
+
         public async Task<ActionResult<GenaricResponse<bool>>> DeleteRoomImageAsync(int roomId, int imageId)
         {
             var response = await _roomService.DeleteRoomImageAsync(roomId, imageId);

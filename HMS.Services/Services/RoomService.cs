@@ -179,7 +179,7 @@ namespace HMS.Services.Services
         {
             Enum.TryParse<RoomType>(roomType, out var roomTypeEnum);
             var GenaricResponse = new GenaricResponse<IEnumerable<RoomDto>>();
-            Expression<Func<Room, bool>> filter = R=>(R.RoomType == roomTypeEnum && R.RoomStatus==RoomStatus.Available||R.RoomStatus==RoomStatus.Reserved) ;
+            Expression<Func<Room, bool>> filter = R => (roomType ==null|| R.RoomType == roomTypeEnum )&&(R.RoomStatus==RoomStatus.Available||R.RoomStatus==RoomStatus.Reserved); 
             Expression<Func<Room, object>>? orderBy = null;
             Expression<Func<Room, object>>? orderByDesc = null;
 
