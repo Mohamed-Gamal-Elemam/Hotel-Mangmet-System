@@ -5,6 +5,7 @@ using HMS.Core.Entities.SecurityModule;
 using HMS.Infrastructure.Data.Contexts;
 using HMS.Infrastructure.Data.DataSeed;
 using HMS.Infrastructure.Data.Repository;
+using HMS.Infrastructure.ExternalServices;
 using HMS.Services;
 using HMS.Services.Helper;
 using HMS.Services.Services;
@@ -12,6 +13,7 @@ using HMS.ServicesAbstraction;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 namespace HMS.API
@@ -42,8 +44,10 @@ namespace HMS.API
             builder.Services.AddScoped<IDataIntializer,DataIntializer>();
             builder.Services.AddIdentity<HotelUser, IdentityRole>()
                 .AddEntityFrameworkStores<HotelDbContext>();
+            builder.Services.Configure<EmailSetting>(builder.Configuration.GetSection("EmailSetting"));
 
             builder.Services.AddScoped<IAuthServices,AuthServices>();
+            builder.Services.AddTransient<IEmailServices, EmailServices>();
 
             builder.Services.AddAuthentication(options =>
             {
@@ -64,7 +68,7 @@ namespace HMS.API
                         ClockSkew = TimeSpan.FromHours(1)
                     };
                 });
-
+            
             var app = builder.Build();
 
             await app.MigrateDatabaseAsync();

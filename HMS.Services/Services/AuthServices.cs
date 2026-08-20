@@ -4,8 +4,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Shared.DTOs.AuthDtos;
+using Shared.Message;
 using Shared.Resposne;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -17,11 +19,15 @@ namespace HMS.Services.Services
     {
         private readonly UserManager<HotelUser> _userManager;
         private readonly IConfiguration _configuration;
+        private readonly IEmailServices _email;
+        private readonly ILogger _logger;
 
-        public AuthServices(UserManager<HotelUser> userManager ,IConfiguration configuration)
+        public AuthServices(UserManager<HotelUser> userManager ,IConfiguration configuration ,IEmailServices email,ILogger logger)
         {
             _userManager = userManager;
             _configuration = configuration;
+            _email = email;
+            _logger = logger;
         }
         public async Task<GenaricResponse<UserDto>> RegisterUserAsync(RegisterDto registerDto)
         {
@@ -59,6 +65,23 @@ namespace HMS.Services.Services
 
             }
             await _userManager.AddToRoleAsync(HotelUser, "Guest");
+            var welcomeEmail = new Email
+            {
+                To = HotelUser.Email,
+                Subject = "Welcome to Our Hotel!",
+                Body = $"Hello {HotelUser.FullName},\n\nWelcome to our platform! We are thrilled to have you with us."
+            };
+
+       
+            try
+            {
+                await _email.SendEmail(welcomeEmail);
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while sending the welcome email to user {Email}", registerDto.Email);
+            }
+
 
             GenaricResponse.StutesCode = StatusCodes.Status200OK;
             GenaricResponse.Message = "success to register New Guest";
