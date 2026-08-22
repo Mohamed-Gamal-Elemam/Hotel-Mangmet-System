@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HMS.Core.Entities.BookingModule;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -12,6 +13,7 @@ namespace HMS.Core.Entities.RoomModule
         public string Amenities { get; set; }= null!;
         public RoomStatus RoomStatus { get; set; }
         public ICollection<RoomImages> RoomImages { get; set; } = [];
+        public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 
     }
 }

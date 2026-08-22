@@ -20,9 +20,9 @@ namespace HMS.Services.Services
         private readonly UserManager<HotelUser> _userManager;
         private readonly IConfiguration _configuration;
         private readonly IEmailServices _email;
-        private readonly ILogger _logger;
+        private readonly ILogger<AuthServices> _logger;
 
-        public AuthServices(UserManager<HotelUser> userManager ,IConfiguration configuration ,IEmailServices email,ILogger logger)
+        public AuthServices(UserManager<HotelUser> userManager ,IConfiguration configuration ,IEmailServices email, ILogger<AuthServices> logger)
         {
             _userManager = userManager;
             _configuration = configuration;
@@ -38,7 +38,7 @@ namespace HMS.Services.Services
                 GenaricResponse.Message = "no data to register";
                 return GenaricResponse;
             }
-            var UserEmailExist=_userManager.FindByEmailAsync(registerDto.Email);
+            var UserEmailExist=await _userManager.FindByEmailAsync(registerDto.Email);
             if (UserEmailExist is not null)
             {
                 GenaricResponse.StutesCode= StatusCodes.Status400BadRequest;

@@ -1,4 +1,5 @@
-﻿using HMS.Core.Entities.SecurityModule;
+﻿using HMS.Core.Entities.BookingModule;
+using HMS.Core.Entities.SecurityModule;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;

@@ -22,6 +22,66 @@ namespace HMS.Infrastructure.Data.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("HMS.Core.Entities.BookingModule.Booking", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CheckInDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CheckOutDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(3)
+                        .HasColumnType("nvarchar(3)")
+                        .HasDefaultValue("EGP");
+
+                    b.Property<string>("HotelUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("PaidDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PayMobOrderId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("PayMobPaymentKey")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("RoomId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HotelUserId");
+
+                    b.HasIndex("RoomId");
+
+                    b.ToTable("Bookings", (string)null);
+                });
+
             modelBuilder.Entity("HMS.Core.Entities.RoomModule.Room", b =>
                 {
                     b.Property<int>("Id")
@@ -316,6 +376,25 @@ namespace HMS.Infrastructure.Data.Migrations
                     b.ToTable("StaffUsers", (string)null);
                 });
 
+            modelBuilder.Entity("HMS.Core.Entities.BookingModule.Booking", b =>
+                {
+                    b.HasOne("HMS.Core.Entities.SecurityModule.HotelUser", "HotelUser")
+                        .WithMany("Bookings")
+                        .HasForeignKey("HotelUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("HMS.Core.Entities.RoomModule.Room", "Room")
+                        .WithMany("Bookings")
+                        .HasForeignKey("RoomId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("HotelUser");
+
+                    b.Navigation("Room");
+                });
+
             modelBuilder.Entity("HMS.Core.Entities.RoomModule.RoomImages", b =>
                 {
                     b.HasOne("HMS.Core.Entities.RoomModule.Room", null)
@@ -387,7 +466,14 @@ namespace HMS.Infrastructure.Data.Migrations
 
             modelBuilder.Entity("HMS.Core.Entities.RoomModule.Room", b =>
                 {
+                    b.Navigation("Bookings");
+
                     b.Navigation("RoomImages");
+                });
+
+            modelBuilder.Entity("HMS.Core.Entities.SecurityModule.HotelUser", b =>
+                {
+                    b.Navigation("Bookings");
                 });
 #pragma warning restore 612, 618
         }
