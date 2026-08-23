@@ -39,7 +39,9 @@ namespace HMS.API
             {
                 cfg.AddMaps(typeof(ServiceAssemblyRefrance).Assembly);
             });
+
             builder.Services.AddScoped<IRoomService,RoomService>();
+            builder.Services.AddScoped<IBookingServices, BookingServices>();
             builder.Services.AddTransient<IAttachementService, AttachementService>();
             builder.Services.AddScoped<IDataIntializer,DataIntializer>();
             builder.Services.AddIdentity<HotelUser, IdentityRole>()

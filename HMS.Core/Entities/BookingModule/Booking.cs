@@ -16,7 +16,7 @@ namespace HMS.Core.Entities.BookingModule
 
         public string Currency { get; set; } = "EGP";
 
-        public BookingStatus Status { get; set; }
+        public BookingStatus Status { get; set; } = BookingStatus.PendingPayment;
 
         public string? PayMobOrderId { get; set; }
 
