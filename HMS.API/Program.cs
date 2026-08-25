@@ -70,6 +70,7 @@ namespace HMS.API
                         ClockSkew = TimeSpan.FromHours(1)
                     };
                 });
+            builder.Services.AddScoped<IPaymentServices, PaymentServices>();
             
             var app = builder.Build();
 

@@ -24,9 +24,9 @@ namespace HMS.Services.Services
             _unitOfWork = unitOfWork;
             _logger = logger;
         }
-        public async Task<GenaricResponse<string>> CreateBookingAsync(string userId, CreateBookingDto createBooking)
+        public async Task<GenaricResponse<Guid>> CreateBookingAsync(string userId, CreateBookingDto createBooking)
         {
-            var genaricResponse = new GenaricResponse<string>();
+            var genaricResponse = new GenaricResponse<Guid>();
             try
             {
                 if (createBooking == null)
@@ -79,7 +79,7 @@ namespace HMS.Services.Services
                 {
                     genaricResponse.StutesCode = StatusCodes.Status200OK;
                     genaricResponse.Message = "Seccess to create Booking";
-                    genaricResponse.Data = booking.Id.ToString();
+                    genaricResponse.Data = booking.Id;
 
                 }
                 else
