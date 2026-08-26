@@ -27,6 +27,8 @@ namespace HMS.API.Controllers
             var Response = await _bookingServices.CreateBookingAsync(userId!, createBooking);
             return HandelResponse(Response);
         }
+        [Authorize(Roles = ("Guest"))]
+
         [HttpPost("{id}/pay")]
 
         public async Task<ActionResult<GenaricResponse<string>>> GetPaymentUrl(Guid id)
@@ -34,5 +36,32 @@ namespace HMS.API.Controllers
             var response = await _paymentServices.CreatePaymentUrlAsync(id);
             return HandelResponse(response);
         }
+        [Authorize(Roles = ("Admin"))]
+        [HttpGet("admin")]
+        public async Task<ActionResult< GenaricResponse<IEnumerable<BookingDto>>>> GetAllBooking()
+        {
+            var response = await _bookingServices.CreateBookingForAdminAsync();
+            return HandelResponse(response);
+        }
+        [Authorize(Roles = ("Admin"))]
+        [HttpPut("{id}/cancel")]
+        public async Task<ActionResult<GenaricResponse<bool>>> Cancelooking([FromRoute ] Guid id)
+        {
+            var Response=await _bookingServices.CanselBookingAsync(id);
+            return HandelResponse(Response);
+        }
+        [Authorize(Roles =("Guest"))]
+        [HttpGet("My")]
+        public async Task<ActionResult<GenaricResponse<IEnumerable<GuestBookingDto>>>> GetBookingForGuest()
+        {
+            var UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var response = await _bookingServices.GetAllBookingForGuestAsync(UserId!);
+                return HandelResponse(response);
+
+
+
+        }
+
+
     }
 }

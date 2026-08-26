@@ -9,6 +9,9 @@ namespace HMS.ServicesAbstraction
 {
     public interface IBookingServices
     {
-        Task<GenaricResponse<Guid>> CreateBookingAsync(string userId, CreateBookingDto createBooking); 
+        Task<GenaricResponse<Guid>> CreateBookingAsync(string userId, CreateBookingDto createBooking);
+        Task<GenaricResponse<IEnumerable<BookingDto>>> CreateBookingForAdminAsync();
+        Task<GenaricResponse<bool>> CanselBookingAsync(Guid BookingId);
+        Task<GenaricResponse<IEnumerable<GuestBookingDto>>> GetAllBookingForGuestAsync(string GuestId);
     }
 }

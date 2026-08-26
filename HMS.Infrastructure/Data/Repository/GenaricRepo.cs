@@ -2,11 +2,7 @@
 using HMS.Core.Entities;
 using HMS.Infrastructure.Data.Contexts;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query.Internal;
-using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Text;
 
 namespace HMS.Infrastructure.Data.Repository
 {
@@ -35,12 +31,19 @@ namespace HMS.Infrastructure.Data.Repository
             return await _dbContext.Set<T>().ToListAsync();
         }
 
-        public async Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>>? filter, Expression<Func<T, object>>? orderBy = null, Expression<Func<T, object>>? orderByDesc = null)
+        public async Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>>? filter, Expression<Func<T, object>>? orderBy = null, Expression<Func<T, object>>? orderByDesc = null, List<Expression<Func<T, object>>>? Includes = null)
         {
             var query = _dbContext.Set<T>().AsQueryable();
             if (filter != null)
             {
                 query = query.Where(filter);
+            }
+            if (Includes !=null)
+            {
+                foreach (var include in Includes)
+                {
+                    query = query.Include(include);
+                }
             }
             if (orderBy != null)
             {

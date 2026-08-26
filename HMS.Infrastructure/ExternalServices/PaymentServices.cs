@@ -2,13 +2,9 @@
 using HMS.Core.Entities.BookingModule;
 using HMS.ServicesAbstraction;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Shared.Resposne;
-using System;
-using System.Collections.Generic;
 using System.Net.Http.Json;
-using System.Text;
 using System.Text.Json;
 
 namespace HMS.Infrastructure.ExternalServices
@@ -61,8 +57,9 @@ namespace HMS.Infrastructure.ExternalServices
 
             }
             Booking.PayMobPaymentKey=paymentKey;
-            _unitOfWork.GetRepository<Booking, Guid>().UpdateAsync(Booking);
             Booking.UpdatedAt=DateTime.Now;
+            Booking.Status = BookingStatus.Paid;
+            _unitOfWork.GetRepository<Booking, Guid>().UpdateAsync(Booking);
 
             var result = await _unitOfWork.SaveChangesAsync() > 0;
             if (result)

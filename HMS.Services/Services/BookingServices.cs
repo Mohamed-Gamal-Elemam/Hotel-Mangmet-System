@@ -1,4 +1,5 @@
-﻿using HMS.Core.Contracts;
+﻿using AutoMapper;
+using HMS.Core.Contracts;
 using HMS.Core.Entities.BookingModule;
 using HMS.Core.Entities.RoomModule;
 using HMS.Core.Entities.SecurityModule;
@@ -6,6 +7,7 @@ using HMS.ServicesAbstraction;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Shared.DTOs.BookingDtos;
+using Shared.Message;
 using Shared.Resposne;
 using System;
 using System.Collections.Generic;
@@ -18,12 +20,73 @@ namespace HMS.Services.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<BookingServices> _logger;
+        private readonly IMapper _mapper;
+        private readonly IEmailServices _email;
 
-        public BookingServices( IUnitOfWork unitOfWork ,ILogger<BookingServices> logger)
+        public BookingServices( IUnitOfWork unitOfWork ,ILogger<BookingServices> logger,IMapper mapper ,IEmailServices email)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
+            _mapper = mapper;
+            _email = email;
         }
+
+        public async Task<GenaricResponse<bool>> CanselBookingAsync(Guid BookingId)
+        {
+            var genaricResponse = new GenaricResponse<bool>();
+            try
+            {
+                var Booking = await _unitOfWork.GetRepository<Booking, Guid>().GetByIdAsync(BookingId, null, [B => B.HotelUser]);
+                if (Booking is null)
+                {
+                    genaricResponse.StutesCode = StatusCodes.Status404NotFound;
+                    genaricResponse.Message = "Booking Not Found To Cancelled";
+                    return genaricResponse;
+                }
+                if (Booking.Status == BookingStatus.Paid)
+                {
+                    genaricResponse.StutesCode = StatusCodes.Status404NotFound;
+                    genaricResponse.Message = "Can Not Cancelled this Booking Becous is Already Paid";
+                    return genaricResponse;
+                }
+                Booking.Status = BookingStatus.Cancelled;
+                Booking.UpdatedAt = DateTime.Now;
+                _unitOfWork.GetRepository<Booking, Guid>().UpdateAsync(Booking);
+                var result = await _unitOfWork.SaveChangesAsync() > 0;
+                if (result)
+                {
+                    genaricResponse.StutesCode = StatusCodes.Status200OK;
+                    genaricResponse.Message = "Seccess to Cancelled This Booking";
+                    genaricResponse.Data = true;
+
+                    var Email = new Email
+                    {
+                        To = Booking.HotelUser.Email!,
+                        Subject = "CcYour Booking Has Been Cancelled ",
+                        Body = "Sorry,we have cancel your booking becouse of emergance reasons please contact us for more details"
+                    };
+                    await _email.SendEmail(Email);
+
+                }
+                else
+                {
+                    genaricResponse.StutesCode = StatusCodes.Status500InternalServerError;
+                    genaricResponse.Message = "Feaild to cancle this booking";
+                }
+                return genaricResponse;
+            }
+            catch (Exception ex)
+            {
+
+                _logger.LogError(ex, "Feaild to cancle this booking");
+                genaricResponse.StutesCode = StatusCodes.Status500InternalServerError;
+                genaricResponse.Message = "Feaild to cancle this booking";
+                return genaricResponse ;
+            }
+
+
+        }
+
         public async Task<GenaricResponse<Guid>> CreateBookingAsync(string userId, CreateBookingDto createBooking)
         {
             var genaricResponse = new GenaricResponse<Guid>();
@@ -100,6 +163,49 @@ namespace HMS.Services.Services
 
            
             
+
+
+        }
+
+        public async Task<GenaricResponse<IEnumerable<BookingDto>>> CreateBookingForAdminAsync()
+        {
+            var genaricResponse=new GenaricResponse<IEnumerable<BookingDto>>();
+            var Bookings =await _unitOfWork.GetRepository<Booking, Guid>().GetAllAsync(null, null, x=>x.CreatedAt, [B=>B.HotelUser]);
+            if (Bookings is null )
+            {
+                genaricResponse.StutesCode = StatusCodes.Status404NotFound;
+                genaricResponse.Message = "no Booking to show";
+                return genaricResponse;
+            }
+
+
+            var mappedBooking=_mapper.Map<IEnumerable<BookingDto>>(Bookings);
+            genaricResponse.StutesCode = StatusCodes.Status200OK;
+            genaricResponse.Message = "Success to Retrive All Booking ";
+            genaricResponse.Data = mappedBooking;
+            return genaricResponse;
+
+
+        }
+
+        public async Task<GenaricResponse<IEnumerable<GuestBookingDto>>> GetAllBookingForGuestAsync(string GuestId)
+        {
+            var genaricResponse = new GenaricResponse<IEnumerable<GuestBookingDto>>();
+            var Booking=await _unitOfWork.GetRepository<Booking,Guid>()
+                .GetAllAsync(x=>x.HotelUserId == GuestId,null ,x=>x.CreatedAt);
+            if (Booking is null ||!Booking.Any())
+            {
+                genaricResponse.StutesCode = StatusCodes.Status404NotFound;
+                genaricResponse.Message = "no Booking to show";
+                return genaricResponse;
+
+            }
+            var MappedBooking=_mapper.Map<IEnumerable<GuestBookingDto>>(Booking);
+
+            genaricResponse.StutesCode = StatusCodes.Status200OK;
+            genaricResponse.Message = "Success to Retrive All Booking ";
+            genaricResponse.Data = MappedBooking;
+            return genaricResponse;
 
 
         }
